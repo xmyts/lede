@@ -157,13 +157,30 @@ ifneq ($(GCC_ARCH),)
   GCC_CONFIGURE+= --with-arch=$(GCC_ARCH)
 endif
 
+
 ifeq ($(CONFIG_arm),y)
-  # 原逻辑（动态绑定CONFIG_CPU_TYPE，导致冲突）
-  # GCC_CONFIGURE+= --with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
-  
-  # 新逻辑：使用通用架构或单一兼容架构，避免混合核参数
-  GCC_CONFIGURE+= --with-cpu=generic  # 或 cortex-a73（与A311D兼容）
+  # 保留原有CONFIG_CPU_TYPE的解析逻辑
+  GCC_CONFIGURE+= \
+	--with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
+
+  # 添加针对A311D的额外优化参数
+  ifeq ($(CONFIG_TARGET_amlogic_a311d),y)
+    GCC_CONFIGURE+= \
+      -mtune=cortex-a73 \
+      -march=armv8-a \
+      -mcpu=cortex-a73
+  endif
+
+  ifneq ($(CONFIG_SOFT_FLOAT),y)
+    GCC_CONFIGURE+= \
+		--with-fpu=$(word 2, $(subst +, ",$(CONFIG_CPU_TYPE))) \
+		--with-float=hard
+  endif
+
+  # 保留原有的TARGET_CFLAGS过滤
+  TARGET_CFLAGS:=$(filter-out -m%,$(call qstrip,$(TARGET_CFLAGS)))
 endif
+
 
   # Do not let TARGET_CFLAGS get poisoned by extra CPU optimization flags
   # that do not belong here. The cpu,fpu type should be specified via
