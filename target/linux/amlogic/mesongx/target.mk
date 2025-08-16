@@ -7,7 +7,7 @@ FEATURES+=64bit
 # 设备CPU类型（仅用于标识，不直接绑定工具链参数）
 CPU_TYPE:=cortex-a73.cortex-a53
 
-KERNEL_PATCHVER:=5.15
+KERNEL_PATCHVER:=5.15.180
 
 # 核心：强制固件编译参数，过滤工具链默认的-mcpu
 TARGET_CFLAGS := \
