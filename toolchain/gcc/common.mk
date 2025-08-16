@@ -163,7 +163,6 @@ ifeq ($(CONFIG_arm),y)
   
   # 新逻辑：使用通用架构或单一兼容架构，避免混合核参数
   GCC_CONFIGURE+= --with-cpu=generic  # 或 cortex-a73（与A311D兼容）
-  ...
 endif
 
   # Do not let TARGET_CFLAGS get poisoned by extra CPU optimization flags
