@@ -1,26 +1,34 @@
+#  æ–‡ä»¶ï¼štarget/linux/amlogic/mesongx/Makefile
+#  æ–‡ä»¶ï¼štarget/linux/amlogic/mesongx/Makefile
 # SPDX-License-Identifier: GPL-2.0-only
-include $(TOPDIR)/rules.mk  # ±ØĞë°üº¬µÄ¶¥²ã¹æÔò
+include $(TOPDIR)/rules.mk  # å¿…é¡»åŒ…å«çš„é¡¶å±‚è§„åˆ™
 
-# ¼Ü¹¹ĞÅÏ¢£¨ÓëÖ÷MakefileÍêÈ«Æ¥Åä£©
+# æ¶æ„ä¿¡æ¯ï¼ˆä¸ä¸»Makefileå®Œå…¨åŒ¹é…ï¼‰
 ARCH:=aarch64
 BOARD:=amlogic
 SUBTARGET:=mesongx
 DEVICE_TYPE:=other
 
-# ±ØĞë°üº¬µÄÉè±¸Ä£°å
+# å¿…é¡»åŒ…å«çš„è®¾å¤‡æ¨¡æ¿
 include $(INCLUDE_DIR)/target.mk
 
-# Éè±¸¶¨Òå£¨ÎŞÈÎºÎÓï·¨´íÎó£©
+# è®¾å¤‡å®šä¹‰ï¼ˆæ— ä»»ä½•è¯­æ³•é”™è¯¯ï¼‰
 define Device/oes_a311d_box
   DEVICE_VENDOR := OES
   DEVICE_MODEL := A311D Box
-  DEVICE_DTS := meson-a311d-oes-box  # Óë.dtsÎÄ¼şÒ»ÖÂ
-  DEVICE_PACKAGES := kmod-amlogic-eth-g12b kmod-usb3
+  DEVICE_DTS := meson-a311d-oes-box  # ä¸.dtsæ–‡ä»¶ä¸€è‡´
+  DEVICE_PACKAGES := \
+    kmod-amlogic-eth \
+    kmod-usb-dwc3 \
+    kmod-usb-xhci-hcd \
+    kmod-usb-storage \
+    kmod-usb-storage-uas \
+    kmod-fb
   IMAGE/sysupgrade.img.gz := boot-common | amlogic-sdcard | gzip | append-metadata
 endef
 
-# Éè±¸×¢²á£¨±ØĞëÓĞ£©
+# è®¾å¤‡æ³¨å†Œï¼ˆå¿…é¡»æœ‰ï¼‰
 TARGET_DEVICES += oes_a311d_box
 
-# ¹Ì¶¨¸ñÊ½µÄ¹¹½¨Ä¿±ê
+# å›ºå®šæ ¼å¼çš„æ„å»ºç›®æ ‡
 $(eval $(call BuildTarget))
