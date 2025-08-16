@@ -1,0 +1,20 @@
+include $(TOPDIR)/rules.mk
+
+ARCH:=aarch64
+BOARD:=amlogic
+SUBTARGET:=mesongx  # 与target.mk中的SUBTARGET一致
+DEVICE_TYPE:=other
+
+include $(INCLUDE_DIR)/target.mk
+
+# 设备注册必须正确关联DEVICE_DTS
+define Device/oes_a311d_box
+  DEVICE_VENDOR := OES
+  DEVICE_MODEL := A311D Box
+  DEVICE_DTS := meson-a311d-oes-box  # 必须与dts目录下的文件名一致（不含.dts）
+  DEVICE_PACKAGES := kmod-amlogic-wifi
+  IMAGE/sysupgrade.img.gz := boot-common | amlogic-sdcard | gzip | append-metadata
+endef
+TARGET_DEVICES += oes_a311d_box  # 确保添加此行
+
+$(eval $(call BuildTarget))

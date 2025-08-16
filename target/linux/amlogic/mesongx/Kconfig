@@ -1,0 +1,11 @@
+# 新增64位依赖，过滤32位选项
+menu "Target Devices"
+depends on TARGET_amlogic && TARGET_amlogic_mesongx && ARCH_aarch64  # 强制依赖64位
+
+config TARGET_amlogic_mesongx_DEVICE_oes_a311d_box
+    bool "OES Box (Amlogic A311D) 64-bit"  # 明确标记64位
+    select SOC_MESON_A311D
+    select ARCH_64BIT  # 强制启用64位
+    help
+      64-bit firmware for OES Box with Amlogic A311D (ARMv8-A).
+endmenu
