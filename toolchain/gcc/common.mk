@@ -1,3 +1,4 @@
+#  文件：toolchain/gcc/common.mk
 #
 # Copyright (C) 2002-2003 Erik Andersen <andersen@uclibc.org>
 # Copyright (C) 2004 Manuel Novoa III <mjn3@uclibc.org>
@@ -157,14 +158,13 @@ ifneq ($(GCC_ARCH),)
 endif
 
 ifeq ($(CONFIG_arm),y)
-  GCC_CONFIGURE+= \
-	--with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
-
-  ifneq ($(CONFIG_SOFT_FLOAT),y)
-    GCC_CONFIGURE+= \
-		--with-fpu=$(word 2, $(subst +, ",$(CONFIG_CPU_TYPE))) \
-		--with-float=hard
-  endif
+  # 原逻辑（动态绑定CONFIG_CPU_TYPE，导致冲突）
+  # GCC_CONFIGURE+= --with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
+  
+  # 新逻辑：使用通用架构或单一兼容架构，避免混合核参数
+  GCC_CONFIGURE+= --with-cpu=generic  # 或 cortex-a73（与A311D兼容）
+  ...
+endif
 
   # Do not let TARGET_CFLAGS get poisoned by extra CPU optimization flags
   # that do not belong here. The cpu,fpu type should be specified via
