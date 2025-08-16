@@ -12,17 +12,33 @@ KERNEL_PATCHVER:=5.15
 # 核心：强制固件编译参数，过滤工具链默认的-mcpu
 TARGET_CFLAGS := \
   $(filter-out -mcpu=%,$(TARGET_CFLAGS)) \
-  -march=armv8.2-a+crypto+simd \
+  -march=armv8-a+simd+crc \  # 修改点1：降低到兼容性更好的 armv8-a
   -mtune=cortex-a73.cortex-a53
+
+# 为不同核心设置差异化优化（新增）
+TARGET_CFLAGS_BIG := -march=armv8.2-a+simd
+TARGET_CFLAGS_LITTLE := -march=armv8-a+simd
 
 # A311D 硬件专属驱动
 DEFAULT_PACKAGES += \
     ethtool parted kmod-fb \
     kmod-crypto-amlogic \
     kmod-amlogic-thermal \
-    kmod-video-amlogic-vpu
+    kmod-video-amlogic-vpu \
+    amlogic-cpufreq \  # 新增：大小核调度支持
+    amlogic-gpu-driver  # 新增：GPU驱动
+
+# 添加硬件加密支持（新增）
+define KernelPackage/crypto-amlogic
+  SUBMENU:=$(CRYPTO_MENU)
+  TITLE:=Amlogic hardware crypto accelerator
+  DEPENDS:=@TARGET_amlogic
+  KCONFIG:=CONFIG_CRYPTO_DEV_AMLOGIC
+  FILES:=$(LINUX_DIR)/drivers/crypto/amlogic/amlogic-crypto.ko
+  AUTOLOAD:=$(call AutoLoad,90,amlogic-crypto)
+endef
 
 define Target/Description
-	Build firmware for Amlogic A311D (4x Cortex-A73 + 2x Cortex-A53 big.LITTLE).
-	Optimized for ARMv8.2-A instruction set, hardware encryption, and big.LITTLE scheduling.
+    Build firmware for Amlogic A311D (4x Cortex-A73 + 2x Cortex-A53 big.LITTLE).
+    Optimized for ARMv8-A instruction set with hardware acceleration.
 endef
