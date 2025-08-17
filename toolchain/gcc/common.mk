@@ -131,6 +131,30 @@ GCC_CONFIGURE:= \
 # 针对aarch64架构：禁用--with-cpu和--with-fpu选项
 ifeq ($(ARCH),aarch64)
   GCC_CONFIGURE := $(filter-out --with-cpu=% --with-fpu=%,$(GCC_CONFIGURE))
+  
+  # 安全默认配置
+  GCC_CONFIGURE += --with-arch=armv8-a
+  
+  # 根据CPU类型添加优化
+  ifeq ($(CONFIG_CPU_TYPE),cortex-a73.cortex-a53)
+    # A311D 特定优化
+    GCC_CONFIGURE += \
+      --with-tune=cortex-a73.cortex-a53 \
+      --enable-fix-cortex-a53-843419 \
+      --enable-lto
+  else ifneq (,$(findstring cortex,$(CONFIG_CPU_TYPE)))
+    # 通用Cortex优化
+    GCC_CONFIGURE += --with-tune=generic
+  else
+    # 最安全配置
+    GCC_CONFIGURE += --with-tune=generic
+  endif
+  
+  # 启用必要扩展
+  GCC_CONFIGURE += \
+    --enable-fix-cortex-a53-843419 \
+    --enable-standard-branch-protection \
+    --enable-autolink-libatomic
 endif
 
 ifneq ($(CONFIG_mips)$(CONFIG_mipsel),)
@@ -228,6 +252,12 @@ define Host/Configure
 	(cd $(GCC_BUILD_DIR) && rm -f config.cache; \
 		$(GCC_CONFIGURE) \
 	);
+	
+	# 保存配置摘要
+	@echo "GCC 配置摘要：" > $(GCC_BUILD_DIR)/gcc-config-summary.txt
+	@cat $(GCC_BUILD_DIR)/config.log | grep "Configured with" >> $(GCC_BUILD_DIR)/gcc-config-summary.txt
+	@echo "目标架构: $(ARCH)" >> $(GCC_BUILD_DIR)/gcc-config-summary.txt
+	@echo "CPU 类型: $(CONFIG_CPU_TYPE)" >> $(GCC_BUILD_DIR)/gcc-config-summary.txt
 endef
 
 define Host/Clean
