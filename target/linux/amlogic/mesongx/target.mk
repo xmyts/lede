@@ -11,12 +11,12 @@ KERNEL_PATCHVER:=5.15
 # 核心：强制固件编译参数，过滤工具链默认的-mcpu，确保兼容A73/A53
 TARGET_CFLAGS := \
 	$(filter-out -mcpu=%,$(TARGET_CFLAGS)) \
-	-march=armv8-a+simd \
+	-march=armv8-a \
 	-mtune=cortex-a73.cortex-a53
 
 # 为不同核心设置差异化差异化优化（保持兼容性优先）
-TARGET_CFLAGS_BIG := -march=armv8-a+simd
-TARGET_CFLAGS_LITTLE := -march=armv8-a+simd
+TARGET_CFLAGS_BIG := -march=armv8-a
+TARGET_CFLAGS_LITTLE := -march=armv8-a
 
 # A311D 硬件专属驱动（确保双核心协同工作）
 DEFAULT_PACKAGES += \
