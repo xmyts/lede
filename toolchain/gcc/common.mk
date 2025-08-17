@@ -27,7 +27,12 @@ PKG_VERSION:=$(firstword $(subst +, ,$(GCC_VERSION)))
 GCC_MAJOR_VERSION:=$(word 1,$(subst ., ,$(PKG_VERSION)))
 GCC_DIR:=$(PKG_NAME)-$(PKG_VERSION)
 
-PKG_SOURCE_URL:=@GNU/gcc/gcc-$(PKG_VERSION)
+# 添加多个下载源提高可靠性
+PKG_SOURCE_URL:= \
+    https://mirrors.ustc.edu.cn/gnu/gcc/gcc-$(PKG_VERSION) \
+    https://ftpmirror.gnu.org/gcc/gcc-$(PKG_VERSION) \
+    @GNU/gcc/gcc-$(PKG_VERSION)
+    
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 
 ifeq ($(PKG_VERSION),8.4.0)
@@ -126,7 +131,13 @@ GCC_CONFIGURE:= \
 		--with-diagnostics-color=auto-if-env \
 		--enable-__cxa_atexit \
 		--enable-libstdcxx-dual-abi \
-		--with-default-libstdcxx-abi=new
+		--with-default-libstdcxx-abi=new \
+		# 添加禁用文档生成的选项 \
+		--disable-docs \
+		--disable-gtk-doc \
+		--disable-gtk-doc-html \
+		--disable-gtk-doc-pdf \
+		--disable-doc
 
 # 针对aarch64架构：禁用--with-cpu和--with-fpu选项
 ifeq ($(ARCH),aarch64)
