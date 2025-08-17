@@ -252,3 +252,11 @@ define Host/Clean
 		$(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-gc* \
 		$(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-c*
 endef
+
+define Build/Prepare
+	# 验证工具链支持
+	echo "int main(){return 0;}" > verify.c
+	$(TARGET_CC) $(TARGET_CFLAGS) -c verify.c -o verify.o
+	rm verify.c verify.o
+	$(call Build/Prepare/Default)
+endef
