@@ -12,7 +12,7 @@ KERNEL_PATCHVER:=5.15
 # 核心：强制固件编译参数，过滤工具链默认的-mcpu
 TARGET_CFLAGS := \
 	$(filter-out -mcpu=%,$(TARGET_CFLAGS)) \
-	-march=armv8-a+simd+crc \
+	-march=armv8-a+simd \
 	-mtune=cortex-a73.cortex-a53
 
 # 为不同核心设置差异化优化（新增）
