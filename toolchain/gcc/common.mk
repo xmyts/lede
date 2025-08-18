@@ -1,4 +1,4 @@
-#  文件：toolchain/gcc/common.mk
+# 文件：toolchain/gcc/common.mk
 #
 # Copyright (C) 2002-2003 Erik Andersen <andersen@uclibc.org>
 # Copyright (C) 2004 Manuel Novoa III <mjn3@uclibc.org>
@@ -90,6 +90,15 @@ else
   GRAPHITE_CONFIGURE:= --without-isl --without-cloog
 endif
 
+# 核心变更：通过 target.mk 定义的变量统一工具链参数
+# 变量说明：
+# - CPU_TYPE: 目标CPU型号（如 cortex-a9、mt7621）
+# - ARCH_VERSION: 目标架构版本（如 armv7-a、mips32r2）
+# - FLOAT_TYPE: 浮点类型（hard/soft）
+# - FPU_TYPE: 浮点单元型号（如 neon、vfpv4）
+# - ABI: 目标ABI（如 eabihf、n32）
+# - EXTRA_ARCH_FLAGS: 额外架构参数（如 MIPS的plt）
+
 GCC_CONFIGURE:= \
 	SHELL="$(BASH)" \
 	$(if $(shell gcc --version 2>&1 | grep -E "Apple.(LLVM|clang)"), \
@@ -115,10 +124,20 @@ GCC_CONFIGURE:= \
 		--with-host-libstdcxx=-lstdc++ \
 		$(SOFT_FLOAT_CONFIG_OPTION) \
 		$(call qstrip,$(CONFIG_EXTRA_GCC_CONFIG_OPTIONS)) \
-		$(if $(CONFIG_mips64)$(CONFIG_mips64el),--with-arch=mips64 \
-			--with-abi=$(call qstrip,$(CONFIG_MIPS64_ABI))) \
-		$(if $(CONFIG_arc),--with-cpu=$(CONFIG_CPU_TYPE)) \
-		$(if $(CONFIG_powerpc64), $(if $(CONFIG_USE_MUSL),--with-abi=elfv2)) \
+		# 引用 target.mk 中的架构版本和ABI（适用于MIPS64等）
+		$(if $(ARCH_VERSION),--with-arch=$(ARCH_VERSION)) \
+		$(if $(ABI),--with-abi=$(ABI)) \
+		# 引用 target.mk 中的CPU型号（适用于ARC等）
+		$(if $(CPU_TYPE),--with-cpu=$(CPU_TYPE)) \
+		# 浮点配置（硬浮点/软浮点）
+		$(if $(filter hard,$(FLOAT_TYPE)), \
+			--with-float=hard \
+			$(if $(FPU_TYPE),--with-fpu=$(FPU_TYPE)) \
+		, \
+			--with-float=soft \
+		) \
+		# 额外架构参数（如MIPS的plt）
+		$(EXTRA_ARCH_FLAGS) \
 		--with-gmp=$(STAGING_DIR_HOST) \
 		--with-mpfr=$(STAGING_DIR_HOST) \
 		--with-mpc=$(STAGING_DIR_HOST) \
@@ -127,9 +146,6 @@ GCC_CONFIGURE:= \
 		--enable-__cxa_atexit \
 		--enable-libstdcxx-dual-abi \
 		--with-default-libstdcxx-abi=new
-ifneq ($(CONFIG_mips)$(CONFIG_mipsel),)
-  GCC_CONFIGURE += --with-mips-plt
-endif
 
 ifneq ($(CONFIG_GCC_DEFAULT_PIE),)
   GCC_CONFIGURE+= \
@@ -147,59 +163,20 @@ ifneq ($(CONFIG_EXTRA_TARGET_ARCH),)
 		--enable-targets=$(call qstrip,$(CONFIG_EXTRA_TARGET_ARCH_NAME))-linux-$(TARGET_SUFFIX)
 endif
 
+# SPARC架构特殊配置（如需可保留）
 ifdef CONFIG_sparc
   GCC_CONFIGURE+= \
 		--enable-targets=all \
 		--with-long-double-128
 endif
 
-ifneq ($(GCC_ARCH),)
-  GCC_CONFIGURE+= --with-arch=$(GCC_ARCH)
-endif
-
-
-# 原始代码位置
+# ARM架构：清除TARGET_CFLAGS中可能重复的-m参数（避免冲突）
 ifeq ($(CONFIG_arm),y)
-  GCC_CONFIGURE+= \
-    --with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
-
-  ifneq ($(CONFIG_SOFT_FLOAT),y)
-    GCC_CONFIGURE+= \
-        --with-fpu=$(word 2, $(subst +, ",$(CONFIG_CPU_TYPE))) \
-        --with-float=hard
-  endif
-
-# +++ 修改：仅影响工具链构建，不污染全局环境 +++
-ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
-  # 创建工具链专用的临时变量
-  _TOOLCHAIN_TARGET_CFLAGS := $(TARGET_CFLAGS)
-  
-  # 移除冲突标志（确保工具链构建纯净）
-  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -mcpu=%,$(_TOOLCHAIN_TARGET_CFLAGS))
-  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -march=%,$(_TOOLCHAIN_TARGET_CFLAGS))
-  
-  # 添加优化的工具链构建标志
-  _TOOLCHAIN_TARGET_CFLAGS += \
-    -march=armv8-a \
-    -mtune=cortex-a73.cortex-a53
-  
-  # 仅将这些标志应用于工具链的运行时库构建
-  GCC_CONFIGURE += CFLAGS_FOR_TARGET="$(_TOOLCHAIN_TARGET_CFLAGS)"
-  GCC_CONFIGURE += CXXFLAGS_FOR_TARGET="$(_TOOLCHAIN_TARGET_CFLAGS)"
-  undefine _TOOLCHAIN_TARGET_CFLAGS
-endif
-
-# 保留原始处理（不要修改全局TARGET_CFLAGS）
-TARGET_CFLAGS:=$(filter-out -m%,$(call qstrip,$(TARGET_CFLAGS)))
-endif
-
-
-  # Do not let TARGET_CFLAGS get poisoned by extra CPU optimization flags
-  # that do not belong here. The cpu,fpu type should be specified via
-  # --with-cpu and --with-fpu for ARM and not CFLAGS.
+  # 移除TARGET_CFLAGS中与CPU/架构相关的-m参数（工具链已通过--with-*指定）
   TARGET_CFLAGS:=$(filter-out -m%,$(call qstrip,$(TARGET_CFLAGS)))
 endif
 
+# x86+GLIBC+GCCGO特殊配置（如需可保留）
 ifeq ($(CONFIG_TARGET_x86)$(CONFIG_USE_GLIBC)$(CONFIG_INSTALL_GCCGO),yyy)
   TARGET_CFLAGS+=-fno-split-stack
 endif
@@ -217,6 +194,7 @@ define Host/SetToolchainInfo
 	$(SED) 's,GCC_VERSION=.*,GCC_VERSION=$(GCC_VERSION),' $(TOOLCHAIN_DIR)/info.mk
 endef
 
+# 版本文件路径适配（保持原逻辑）
 ifeq ($(GCC_MAJOR_VERSION),11)
 	GCC_VERSION_FILE:=gcc/version.c
 else
@@ -227,6 +205,7 @@ ifeq ($(GCC_MAJOR_VERSION),8)
 	GCC_VERSION_FILE:=gcc/version.c
 endif
 
+# 准备阶段（保持原逻辑）
 ifneq ($(GCC_PREPARE),)
   define Host/Prepare
 	$(call Host/SetToolchainInfo)
@@ -245,12 +224,14 @@ else
   endef
 endif
 
+# 配置阶段（保持原逻辑）
 define Host/Configure
 	(cd $(GCC_BUILD_DIR) && rm -f config.cache; \
 		$(GCC_CONFIGURE) \
 	);
 endef
 
+# 清理阶段（保持原逻辑）
 define Host/Clean
 	rm -rf $(if $(GCC_PREPARE),$(HOST_SOURCE_DIR)) \
 		$(HOST_BUILD_PREFIX)/stamp/.gcc_* \
@@ -261,4 +242,3 @@ define Host/Clean
 		$(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-gc* \
 		$(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-c*
 endef
-
