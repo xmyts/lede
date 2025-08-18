@@ -88,4 +88,13 @@ endef
 
 include $(SUBTARGET).mk
 
+# 添加oes_a311d_box设备定义
+define Device/oes_a311d_box
+  $(call Device/Amlogic)
+  DEVICE_DTS := meson-a311d-oes-box
+  # 确保使用正确的打包脚本
+  IMAGE/sysupgrade.img.gz := boot-common | amlogic-sdcard | gzip | append-metadata
+endef
+TARGET_DEVICES += oes_a311d_box
+
 $(eval $(call BuildImage))
