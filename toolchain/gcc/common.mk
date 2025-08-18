@@ -180,7 +180,7 @@ ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
   
   # 添加优化的工具链构建标志
   _TOOLCHAIN_TARGET_CFLAGS += \
-    -march=armv8-a+simd \
+    -march=armv8-a \
     -mtune=cortex-a73.cortex-a53
   
   # 仅将这些标志应用于工具链的运行时库构建
