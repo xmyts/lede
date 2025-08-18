@@ -157,31 +157,40 @@ ifneq ($(GCC_ARCH),)
   GCC_CONFIGURE+= --with-arch=$(GCC_ARCH)
 endif
 
+
+# 原始代码位置
 ifeq ($(CONFIG_arm),y)
   GCC_CONFIGURE+= \
-	--with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
+    --with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
 
   ifneq ($(CONFIG_SOFT_FLOAT),y)
     GCC_CONFIGURE+= \
-		--with-fpu=$(word 2, $(subst +, ",$(CONFIG_CPU_TYPE))) \
-		--with-float=hard
+        --with-fpu=$(word 2, $(subst +, ",$(CONFIG_CPU_TYPE))) \
+        --with-float=hard
   endif
 
-
-# +++ 新增：仅针对ARM64工具链构建的特殊处理 +++
+# +++ 修改：仅影响工具链构建，不污染全局环境 +++
 ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
-  # 仅移除工具链构建中的冲突标志，不影响目标固件标志
-  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -mcpu=%,$(TARGET_CFLAGS))
+  # 创建工具链专用的临时变量
+  _TOOLCHAIN_TARGET_CFLAGS := $(TARGET_CFLAGS)
+  
+  # 移除冲突标志（确保工具链构建纯净）
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -mcpu=%,$(_TOOLCHAIN_TARGET_CFLAGS))
   _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -march=%,$(_TOOLCHAIN_TARGET_CFLAGS))
   
   # 添加优化的工具链构建标志
   _TOOLCHAIN_TARGET_CFLAGS += \
-    -march=armv8-a \   # 与target.mk保持一致
+    -march=armv8-a+simd \
     -mtune=cortex-a73.cortex-a53
   
-  # 覆盖仅用于工具链构建的标志
-  TARGET_CFLAGS := $(_TOOLCHAIN_TARGET_CFLAGS)
+  # 仅将这些标志应用于工具链的运行时库构建
+  GCC_CONFIGURE += CFLAGS_FOR_TARGET="$(_TOOLCHAIN_TARGET_CFLAGS)"
+  GCC_CONFIGURE += CXXFLAGS_FOR_TARGET="$(_TOOLCHAIN_TARGET_CFLAGS)"
   undefine _TOOLCHAIN_TARGET_CFLAGS
+endif
+
+# 保留原始处理（不要修改全局TARGET_CFLAGS）
+TARGET_CFLAGS:=$(filter-out -m%,$(call qstrip,$(TARGET_CFLAGS)))
 endif
 
 
@@ -252,3 +261,4 @@ define Host/Clean
 		$(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-gc* \
 		$(TOOLCHAIN_DIR)/bin/$(REAL_GNU_TARGET_NAME)-c*
 endef
+
