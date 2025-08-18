@@ -1,63 +1,80 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2014-2024 OpenWRT.org
-# Copyright (C) 2024 Your Name <your-email@example.com>
+# Copyright (C) 2006-2013 OpenWrt.org
 
 include $(TOPDIR)/rules.mk
 
-# ¼Ü¹¹ºËĞÄ¶¨Òå£¨±£³ÖÓëLEDEÔ­ÅäÖÃÒ»ÖÂ£©
+# æ–‡ä»¶ï¼štarget/linux/amlogic/Makefile
 BOARD:=amlogic
 BOARDNAME:=Amlogic Meson family
-FEATURES:=boot-part ext4 audio usb fpu legacy-sdcard squashfs gpio pci pcie display
-SUBTARGETS:=meson8b mesongx  # 32Î»Óë64Î»×ÓÄ¿±ê
 
-# È«¾ÖÄÚºË°æ±¾¶¨Òå£¨ºËĞÄĞŞ¸´£ºÈ·±£ËùÓĞ×ÓÄ¿±ê¼Ì³Ğ´Ë°æ±¾£©
-KERNEL_PATCHVER:=5.15  # ±ØĞëÓëinclude/kernel-5.15Æ¥Åä£¬¸ù¾İÔ´ÂëÊµ¼ÊÖ§³Ö°æ±¾µ÷Õû
+# æ˜ç¡®åŒºåˆ†32/64ä½å­ç›®æ ‡
+SUBTARGETS:=meson8b mesongx
+meson8b_TITLE:=32-bit (Meson8b/S805)
+mesongx_TITLE:=64-bit (Meson GX/G12B/A311D)  # æ˜¾ç¤ºæ—¶æ˜ç¡®æ ‡æ³¨64ä½
+mesongx_FEATURES:=$(FEATURES) 64bit
 
-# 32Î»meson8b×ÓÄ¿±êÅäÖÃ
-meson8b_TITLE:=Amlogic Meson8b (32-bit)
-meson8b_FEATURES:=$(FEATURES)
-meson8b_ARCH:=arm
-meson8b_KERNEL_PATCHVER:=$(KERNEL_PATCHVER)  # ¼Ì³ĞÈ«¾ÖÄÚºË°æ±¾
-meson8b_CPU_TYPE:=cortex-a5
-meson8b_CPU_SUBTYPE:=vfpv4
+# ç¡®ä¿å†…æ ¸ä¸64ä½åŒ¹é…
+KERNEL_PATCHVER:=5.15  # ä¸mesongxä¿æŒä¸€è‡´
 
-# 64Î»mesongx×ÓÄ¿±êÅäÖÃ£¨ºËĞÄĞŞ¸´£ºÃ÷È·64Î»¼Ü¹¹¼°ÄÚºË°æ±¾£©
-mesongx_TITLE:=Amlogic Meson GX/G12B (64-bit)
-mesongx_FEATURES:=$(FEATURES) 64bit  # Ç¿ÖÆ64Î»ÌØĞÔ
-mesongx_ARCH:=aarch64  # 64Î»¼Ü¹¹±êÊ¶
-mesongx_KERNEL_PATCHVER:=$(KERNEL_PATCHVER)  # ¼Ì³ĞÈ«¾ÖÄÚºË°æ±¾£¬È·±£Óë32Î»Ò»ÖÂ
-mesongx_CPU_TYPE:=cortex-a73
-mesongx_CPU_SUBTYPE:=cortex-a53
+# å…¶ä½™å†…å®¹ä¸å˜...
+# KERNEL_PATCHVER:=6.1
 
-# ¼Ü¹¹ÃèÊö£¨ÏÔÊ¾ÔÚmenuconfigÖĞ£©
 define Target/Description
-  Build firmware images for Amlogic Meson series SoCs:
-  - 32-bit: meson8b (e.g., S805, S812)
-  - 64-bit: mesongx (e.g., A311D, S922X, S905X4) with big.LITTLE architecture
-  Supports SD card/USB disk images and eMMC installations.
+	Build firmware image for Amlogic Meson SoC devices.
+	Currently produces SD Card/USB disk image.
 endef
 
-# ÒıÈëÄÚºË±àÒëºËĞÄ¹æÔò£¨±ØĞë£¬ÓÃÓÚ´«µİKERNEL_PATCHVER£©
-include $(INCLUDE_DIR)/kernel.mk
-# ÒıÈëÄ¿±ê±àÒë¹æÔò
 include $(INCLUDE_DIR)/target.mk
 
-# Í¨ÓÃÄ¬ÈÏ°ü£¨ËùÓĞ×ÓÄ¿±ê¹²ÓÃ£©
 DEFAULT_PACKAGES += \
-  e2fsprogs mkf2fs resize2fs partx-utils losetup \
-  automount htop curl ca-certificates
+	e2fsprogs \
+	mkf2fs \
+	automount \
+	resize2fs \
+	partx-utils \
+	losetup htop autocore-arm
 
-# 32Î»×¨Êô°ü
-meson8b_DEFAULT_PACKAGES += \
-  autocore-arm kmod-crypto-arm
-
-# 64Î»×¨Êô°ü£¨ÊÊÅäaarch64£©
-mesongx_DEFAULT_PACKAGES += \
-  autocore-aarch64 kmod-crypto-arm64
-
-# ÄÚºË¾µÏñÃû³Æ£¨AmlogicÉè±¸Í¨ÓÃ£©
 KERNELNAME:=Image dtbs
 
-# ×¢²áÄ¿±ê£¨¹Ì¶¨¸ñÊ½£©
+$(eval $(call BuildTarget))
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Copyright (C) 2006-2013 OpenWrt.org
+
+include $(TOPDIR)/rules.mk
+
+# æ–‡ä»¶ï¼štarget/linux/amlogic/Makefile
+BOARD:=amlogic
+BOARDNAME:=Amlogic Meson family
+
+# æ˜ç¡®åŒºåˆ†32/64ä½å­ç›®æ ‡
+SUBTARGETS:=meson8b mesongx
+meson8b_TITLE:=32-bit (Meson8b/S805)
+mesongx_TITLE:=64-bit (Meson GX/G12B/A311D)  # æ˜¾ç¤ºæ—¶æ˜ç¡®æ ‡æ³¨64ä½
+mesongx_FEATURES:=$(FEATURES) 64bit
+
+# ç¡®ä¿å†…æ ¸ä¸64ä½åŒ¹é…
+KERNEL_PATCHVER:=5.15  # ä¸mesongxä¿æŒä¸€è‡´
+
+# å…¶ä½™å†…å®¹ä¸å˜...
+# KERNEL_PATCHVER:=6.1
+
+define Target/Description
+	Build firmware image for Amlogic Meson SoC devices.
+	Currently produces SD Card/USB disk image.
+endef
+
+include $(INCLUDE_DIR)/target.mk
+
+DEFAULT_PACKAGES += \
+	e2fsprogs \
+	mkf2fs \
+	automount \
+	resize2fs \
+	partx-utils \
+	losetup htop autocore-arm
+
+KERNELNAME:=Image dtbs
+
 $(eval $(call BuildTarget))
