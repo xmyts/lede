@@ -90,15 +90,6 @@ else
   GRAPHITE_CONFIGURE:= --without-isl --without-cloog
 endif
 
-# 核心变更：通过 target.mk 定义的变量统一工具链参数
-# 变量说明：
-# - CPU_TYPE: 目标CPU型号（如 cortex-a9、mt7621）
-# - ARCH_VERSION: 目标架构版本（如 armv7-a、mips32r2）
-# - FLOAT_TYPE: 浮点类型（hard/soft）
-# - FPU_TYPE: 浮点单元型号（如 neon、vfpv4）
-# - ABI: 目标ABI（如 eabihf、n32）
-# - EXTRA_ARCH_FLAGS: 额外架构参数（如 MIPS的plt）
-
 GCC_CONFIGURE:= \
 	SHELL="$(BASH)" \
 	$(if $(shell gcc --version 2>&1 | grep -E "Apple.(LLVM|clang)"), \
@@ -124,20 +115,16 @@ GCC_CONFIGURE:= \
 		--with-host-libstdcxx=-lstdc++ \
 		$(SOFT_FLOAT_CONFIG_OPTION) \
 		$(call qstrip,$(CONFIG_EXTRA_GCC_CONFIG_OPTIONS)) \
-		# 引用 target.mk 中的架构版本和ABI（适用于MIPS64等）
-		$(if $(ARCH_VERSION),--with-arch=$(ARCH_VERSION)) \
-		$(if $(ABI),--with-abi=$(ABI)) \
-		# 引用 target.mk 中的CPU型号（适用于ARC等）
-		$(if $(CPU_TYPE),--with-cpu=$(CPU_TYPE)) \
-		# 浮点配置（硬浮点/软浮点）
-		$(if $(filter hard,$(FLOAT_TYPE)), \
-			--with-float=hard \
-			$(if $(FPU_TYPE),--with-fpu=$(FPU_TYPE)) \
-		, \
-			--with-float=soft \
+		$(if $(CONFIG_mips64)$(CONFIG_mips64el),--with-arch=mips64 \
+			--with-abi=$(call qstrip,$(CONFIG_MIPS64_ABI))) \
+		$(if $(CONFIG_arc),--with-cpu=$(CONFIG_CPU_TYPE)) \
+		$(if $(CONFIG_powerpc64), $(if $(CONFIG_USE_MUSL),--with-abi=elfv2)) \
+		# 新增：aarch64架构（Cortex-A73/A53）配置，确保工具链匹配目标CPU
+		$(if $(CONFIG_aarch64), \
+			--with-cpu=cortex-a53 \  # 兼容A53/A73（同属ARMv8-A，GCC会自动适配大小核）
+			--with-fpu=neon \        # A73/A53均支持NEON浮点单元
+			--with-float=hard        # aarch64默认硬浮点，匹配硬件特性
 		) \
-		# 额外架构参数（如MIPS的plt）
-		$(EXTRA_ARCH_FLAGS) \
 		--with-gmp=$(STAGING_DIR_HOST) \
 		--with-mpfr=$(STAGING_DIR_HOST) \
 		--with-mpc=$(STAGING_DIR_HOST) \
@@ -146,6 +133,10 @@ GCC_CONFIGURE:= \
 		--enable-__cxa_atexit \
 		--enable-libstdcxx-dual-abi \
 		--with-default-libstdcxx-abi=new
+
+ifneq ($(CONFIG_mips)$(CONFIG_mipsel),)
+  GCC_CONFIGURE += --with-mips-plt
+endif
 
 ifneq ($(CONFIG_GCC_DEFAULT_PIE),)
   GCC_CONFIGURE+= \
@@ -163,20 +154,30 @@ ifneq ($(CONFIG_EXTRA_TARGET_ARCH),)
 		--enable-targets=$(call qstrip,$(CONFIG_EXTRA_TARGET_ARCH_NAME))-linux-$(TARGET_SUFFIX)
 endif
 
-# SPARC架构特殊配置（如需可保留）
 ifdef CONFIG_sparc
   GCC_CONFIGURE+= \
 		--enable-targets=all \
 		--with-long-double-128
 endif
 
-# ARM架构：清除TARGET_CFLAGS中可能重复的-m参数（避免冲突）
+ifneq ($(GCC_ARCH),)
+  GCC_CONFIGURE+= --with-arch=$(GCC_ARCH)
+endif
+
 ifeq ($(CONFIG_arm),y)
-  # 移除TARGET_CFLAGS中与CPU/架构相关的-m参数（工具链已通过--with-*指定）
+  GCC_CONFIGURE+= \
+	--with-cpu=$(word 1, $(subst +," ,$(CONFIG_CPU_TYPE)))
+
+  ifneq ($(CONFIG_SOFT_FLOAT),y)
+    GCC_CONFIGURE+= \
+		--with-fpu=$(word 2, $(subst +, ",$(CONFIG_CPU_TYPE))) \
+		--with-float=hard
+  endif
+
+  # 清理TARGET_CFLAGS中冲突的-m参数，确保与--with-cpu等配置一致
   TARGET_CFLAGS:=$(filter-out -m%,$(call qstrip,$(TARGET_CFLAGS)))
 endif
 
-# x86+GLIBC+GCCGO特殊配置（如需可保留）
 ifeq ($(CONFIG_TARGET_x86)$(CONFIG_USE_GLIBC)$(CONFIG_INSTALL_GCCGO),yyy)
   TARGET_CFLAGS+=-fno-split-stack
 endif
@@ -194,7 +195,6 @@ define Host/SetToolchainInfo
 	$(SED) 's,GCC_VERSION=.*,GCC_VERSION=$(GCC_VERSION),' $(TOOLCHAIN_DIR)/info.mk
 endef
 
-# 版本文件路径适配（保持原逻辑）
 ifeq ($(GCC_MAJOR_VERSION),11)
 	GCC_VERSION_FILE:=gcc/version.c
 else
@@ -205,7 +205,6 @@ ifeq ($(GCC_MAJOR_VERSION),8)
 	GCC_VERSION_FILE:=gcc/version.c
 endif
 
-# 准备阶段（保持原逻辑）
 ifneq ($(GCC_PREPARE),)
   define Host/Prepare
 	$(call Host/SetToolchainInfo)
@@ -224,14 +223,12 @@ else
   endef
 endif
 
-# 配置阶段（保持原逻辑）
 define Host/Configure
 	(cd $(GCC_BUILD_DIR) && rm -f config.cache; \
 		$(GCC_CONFIGURE) \
 	);
 endef
 
-# 清理阶段（保持原逻辑）
 define Host/Clean
 	rm -rf $(if $(GCC_PREPARE),$(HOST_SOURCE_DIR)) \
 		$(HOST_BUILD_PREFIX)/stamp/.gcc_* \
