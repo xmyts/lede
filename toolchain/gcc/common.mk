@@ -1,3 +1,4 @@
+#  文件：toolchain/gcc/common.mk
 #
 # Copyright (C) 2002-2003 Erik Andersen <andersen@uclibc.org>
 # Copyright (C) 2004 Manuel Novoa III <mjn3@uclibc.org>
@@ -89,10 +90,6 @@ else
   GRAPHITE_CONFIGURE:= --without-isl --without-cloog
 endif
 
-# 核心修改：添加OES A311D设备的专属CPU参数判断
-# 当目标设备为oes_a311d_box（即选择OES Box (Amlogic A311D) 64-bit）时，强制使用cortex-a53参数
-OES_A311D_DEVICE:=$(filter oes_a311d_box,$(DEVICE))
-
 GCC_CONFIGURE:= \
 	SHELL="$(BASH)" \
 	$(if $(shell gcc --version 2>&1 | grep -E "Apple.(LLVM|clang)"), \
@@ -129,13 +126,7 @@ GCC_CONFIGURE:= \
 		--with-diagnostics-color=auto-if-env \
 		--enable-__cxa_atexit \
 		--enable-libstdcxx-dual-abi \
-		--with-default-libstdcxx-abi=new \
-		# 针对OES A311D设备强制使用cortex-a53参数（适配N1盒子单核优化）
-		$(if $(OES_A311D_DEVICE), \
-			--with-arch=armv8-a \
-			--with-cpu=cortex-a53 \
-		)
-
+		--with-default-libstdcxx-abi=new
 ifneq ($(CONFIG_mips)$(CONFIG_mipsel),)
   GCC_CONFIGURE += --with-mips-plt
 endif
@@ -162,10 +153,7 @@ ifdef CONFIG_sparc
 		--with-long-double-128
 endif
 
-# 非OES A311D设备时使用原有架构参数
-ifneq ($(OES_A311D_DEVICE),)
-  # OES A311D设备强制跳过默认ARCH参数，使用上面定义的cortex-a53
-else ifneq ($(GCC_ARCH),)
+ifneq ($(GCC_ARCH),)
   GCC_CONFIGURE+= --with-arch=$(GCC_ARCH)
 endif
 
@@ -179,20 +167,28 @@ ifeq ($(CONFIG_arm),y)
 		--with-float=hard
   endif
 
-  # 过滤不相关的CPU优化标志
-  TARGET_CFLAGS:=$(filter-out -m%,$(call qstrip,$(TARGET_CFLAGS)))
+
+# +++ 新增：仅针对ARM64工具链构建的特殊处理 +++
+ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
+  # 仅移除工具链构建中的冲突标志，不影响目标固件标志
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -mcpu=%,$(TARGET_CFLAGS))
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -march=%,$(_TOOLCHAIN_TARGET_CFLAGS))
+  
+  # 添加优化的工具链构建标志
+  _TOOLCHAIN_TARGET_CFLAGS += \
+    -march=armv8-a \   # 与target.mk保持一致
+    -mtune=cortex-a73.cortex-a53
+  
+  # 覆盖仅用于工具链构建的标志
+  TARGET_CFLAGS := $(_TOOLCHAIN_TARGET_CFLAGS)
+  undefine _TOOLCHAIN_TARGET_CFLAGS
 endif
 
-# 为OES A311D设备添加专属编译 flags（适配cortex-a53）
-ifeq ($(OES_A311D_DEVICE),)
-  # 非目标设备使用默认 flags
-else
-  TARGET_CFLAGS:= \
-	$(filter-out -mcpu=%,$(TARGET_CFLAGS)) \
-	-march=armv8-a \
-	-mtune=cortex-a53 \
-	-mfpu=crypto-neon-fp-armv8 \
-	-mfloat-abi=hard
+
+  # Do not let TARGET_CFLAGS get poisoned by extra CPU optimization flags
+  # that do not belong here. The cpu,fpu type should be specified via
+  # --with-cpu and --with-fpu for ARM and not CFLAGS.
+  TARGET_CFLAGS:=$(filter-out -m%,$(call qstrip,$(TARGET_CFLAGS)))
 endif
 
 ifeq ($(CONFIG_TARGET_x86)$(CONFIG_USE_GLIBC)$(CONFIG_INSTALL_GCCGO),yyy)
