@@ -9,15 +9,12 @@ CPU_TYPE:=cortex-a73.cortex-a53
 
 KERNEL_PATCHVER:=5.15
 
-# 核心：强制固件编译参数，过滤工具链默认的-mcpu，确保兼容A73/A53
-TARGET_CFLAGS := \
-	$(filter-out -mcpu=%,$(TARGET_CFLAGS)) \
-	-march=armv8-a \
-	-mtune=cortex-a73.cortex-a53
-
-# 为不同核心设置差异化差异化优化（保持兼容性优先）
-TARGET_CFLAGS_BIG := -march=armv8-a
-TARGET_CFLAGS_LITTLE := -march=armv8-a
+TARGET_CFLAGS += \
+    -march=armv8.0-a+crypto+simd+fp16 \  # 基础指令集+扩展（A53兼容）
+    -mcpu=cortex-a73 \                    # 针对A73微架构优化（不影响指令集）
+    -mtune=cortex-a73.cortex-a53 \        # 同时优化A73和A53的调度策略
+    -mfpu=neon-fp-armv8 \                 # 匹配两者的NEON-FPU硬件
+    -mfloat-abi=hard                      # 启用硬件浮点调用约定
 
 # A311D 硬件专属驱动（确保双核心协同工作）
 DEFAULT_PACKAGES += \
