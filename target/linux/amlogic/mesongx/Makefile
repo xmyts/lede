@@ -25,17 +25,6 @@ define Device/oes_a311d_box  # 设备名称可保留，也可改为与新DTS匹�
 endef
 TARGET_DEVICES += oes_a311d_box  # 若修改设备名称，此处也需同步
 
-# 内核预编译钩子：同步更新DTS路径
-define Kernel/Prepare
-    $(call Kernel/Prepare/Default)
-    # 执行DTS复制脚本（脚本路径需与实际一致）
-    sh /builder/openwrt/target/linux/amlogic/mesongx/files/dts-copy.sh
-    # 验证新DTS文件是否存在
-    if [ ! -f "$(LINUX_DIR)/arch/arm64/boot/dts/amlogic/meson-g12b-gtking-pro.dts" ]; then \
-        echo "ERROR: 新DTS文件不存在！" >&2; \
-        exit 1; \
-    fi
-endef
 
 $(eval $(call BuildTarget))
     
