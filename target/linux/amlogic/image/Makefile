@@ -1,4 +1,4 @@
-
+#  文件：target/linux/amlogic/image/Makefile
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -11,28 +11,28 @@ DEVICE_VARS += UBOOT_DEVICE_NAME
 FAT32_BLOCK_SIZE=1024
 FAT32_BLOCKS=$(shell echo $$(($(CONFIG_TARGET_KERNEL_PARTSIZE)*1024*1024/$(FAT32_BLOCK_SIZE))))
 
-# 新增：定义DTS源文件和目标路径（针对meson-a311d-oes-box）
-DTS_A311D_OES_BOX_SOURCE := $(TOPDIR)/target/linux/amlogic/mesongx/dts/meson-a311d-oes-box.dts
-DTS_A311D_OES_BOX_TARGET := $(LINUX_DIR)/arch/arm64/boot/dts/amlogic/meson-a311d-oes-box.dts
+# 【修改1：更新DTS源文件和目标路径为新文件名】
+DTS_G12B_GTKING_PRO_SOURCE := $(TOPDIR)/target/linux/amlogic/mesongx/dts/meson-g12b-gtking-pro.dts
+DTS_G12B_GTKING_PRO_TARGET := $(LINUX_DIR)/arch/arm64/boot/dts/amlogic/meson-g12b-gtking-pro.dts
 
-# 新增：强制复制DTS文件到内核目录（在设备树编译前执行）
-$(DTS_A311D_OES_BOX_TARGET):
-	@echo "=== 开始复制meson-a311d-oes-box.dts ==="
-	# 检查源文件是否存在
-	if [ ! -f "$(DTS_A311D_OES_BOX_SOURCE)" ]; then \
-		echo "ERROR: 源DTS文件不存在！路径：$(DTS_A311D_OES_BOX_SOURCE)" >&2; \
+# 【修改2：更新DTS复制规则，适配新文件名】
+$(DTS_G12B_GTKING_PRO_TARGET):
+	@echo "=== 开始复制meson-g12b-gtking-pro.dts ==="  # 日志更新为新文件名
+	# 检查新源文件是否存在
+	if [ ! -f "$(DTS_G12B_GTKING_PRO_SOURCE)" ]; then \
+		echo "ERROR: 源DTS文件不存在！路径：$(DTS_G12B_GTKING_PRO_SOURCE)" >&2; \
 		exit 1; \
 	fi
-	# 创建目标目录（确保内核DTS目录存在）
-	mkdir -p $(dir $(DTS_A311D_OES_BOX_TARGET))
-	# 强制复制文件（-f覆盖旧文件，-v显示复制过程）
-	cp -fv $(DTS_A311D_OES_BOX_SOURCE) $(DTS_A311D_OES_BOX_TARGET)
-	# 验证复制结果
-	if [ ! -f "$(DTS_A311D_OES_BOX_TARGET)" ]; then \
-		echo "ERROR: DTS文件复制失败！目标路径：$(DTS_A311D_OES_BOX_TARGET)" >&2; \
+	# 创建目标目录
+	mkdir -p $(dir $(DTS_G12B_GTKING_PRO_TARGET))
+	# 复制新文件
+	cp -fv $(DTS_G12B_GTKING_PRO_SOURCE) $(DTS_G12B_GTKING_PRO_TARGET)
+	# 验证新文件复制结果
+	if [ ! -f "$(DTS_G12B_GTKING_PRO_TARGET)" ]; then \
+		echo "ERROR: DTS文件复制失败！目标路径：$(DTS_G12B_GTKING_PRO_TARGET)" >&2; \
 		exit 1; \
 	fi
-	@echo "=== meson-a311d-oes-box.dts复制完成 ==="
+	@echo "=== meson-g12b-gtking-pro.dts复制完成 ==="  # 日志更新为新文件名
 
 define Build/boot-script
 	mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n "boot.scr" -d boot.txt  $(KDIR)/boot.scr
@@ -98,12 +98,12 @@ endef
 
 include $(SUBTARGET).mk
 
-# oes_a311d_box设备定义（依赖新增的DTS复制规则）
+# 【修改3：设备定义中依赖新的DTS复制目标】
 define Device/oes_a311d_box
   $(call Device/Amlogic)
-  DEVICE_DTS := meson-a311d-oes-box
-  # 强制依赖DTS复制目标，确保编译前文件已就位
-  $(KDIR)/image-$(DEVICE_DTS).dtb: $(DTS_A311D_OES_BOX_TARGET)
+  DEVICE_DTS := meson-g12b-gtking-pro  # 已更新为新文件名
+  # 依赖新的DTS复制目标（与修改1的变量名对应）
+  $(KDIR)/image-$(DEVICE_DTS).dtb: $(DTS_G12B_GTKING_PRO_TARGET)
   IMAGE/sysupgrade.img.gz := boot-common | amlogic-sdcard | gzip | append-metadata
 endef
 TARGET_DEVICES += oes_a311d_box
