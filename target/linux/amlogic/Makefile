@@ -1,43 +1,4 @@
-# SPDX-License-Identifier: GPL-2.0-only
-#
-# Copyright (C) 2006-2013 OpenWrt.org
-
-include $(TOPDIR)/rules.mk
-
 # 文件：target/linux/amlogic/Makefile
-BOARD:=amlogic
-BOARDNAME:=Amlogic Meson family
-
-# 明确区分32/64位子目标
-SUBTARGETS:=meson8b mesongx
-meson8b_TITLE:=32-bit (Meson8b/S805)
-mesongx_TITLE:=64-bit (Meson GX/G12B/A311D)  # 显示时明确标注64位
-mesongx_FEATURES:=$(FEATURES) 64bit
-
-# 确保内核与64位匹配
-KERNEL_PATCHVER:=5.15  # 与mesongx保持一致
-
-# 其余内容不变...
-# KERNEL_PATCHVER:=6.1
-
-define Target/Description
-	Build firmware image for Amlogic Meson SoC devices.
-	Currently produces SD Card/USB disk image.
-endef
-
-include $(INCLUDE_DIR)/target.mk
-
-DEFAULT_PACKAGES += \
-	e2fsprogs \
-	mkf2fs \
-	automount \
-	resize2fs \
-	partx-utils \
-	losetup htop autocore-arm
-
-KERNELNAME:=Image dtbs
-
-$(eval $(call BuildTarget))
 # SPDX-License-Identifier: GPL-2.0-only
 #
 # Copyright (C) 2006-2013 OpenWrt.org
