@@ -176,7 +176,7 @@ ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
   
   # 添加优化的工具链构建标志
   _TOOLCHAIN_TARGET_CFLAGS += \
-    -march=armv8.0-a+crypto+simd+crc \
+    -march=armv8.0-a+crypto+neon+crc \
     -mcpu=cortex-a73 \
     -mtune=cortex-a73.cortex-a53 \
     -O3 \
