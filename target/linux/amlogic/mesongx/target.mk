@@ -10,12 +10,10 @@ CPU_TYPE:=cortex-a73.cortex-a53
 KERNEL_PATCHVER:=5.15
 
 TARGET_CFLAGS += \
-    -march=armv8.0-a+crypto+neon+crc \
-    -mcpu=cortex-a73 \
-    -mtune=cortex-a73.cortex-a53 \
+    -mcpu=cortex-a73.cortex-a53 \  # 关键修改：让编译器识别双集群并采用公共指令集和折中优化
     -O3 \
     -flto -ffat-lto-objects \
-    -mfix-cortex-a53-835769
+    -mfix-cortex-a53-835769        # 重要：修复A53特定硬件缺陷
 
 TARGET_LDFLAGS += -flto
 
