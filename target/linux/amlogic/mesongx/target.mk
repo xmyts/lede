@@ -10,11 +10,14 @@ CPU_TYPE:=cortex-a73.cortex-a53
 KERNEL_PATCHVER:=5.15
 
 TARGET_CFLAGS += \
-    -march=armv8.0-a+crypto+neon+fp16 \
+    -march=armv8.0-a+crypto+simd+crc \
     -mcpu=cortex-a73 \
     -mtune=cortex-a73.cortex-a53 \
-    -mfpu=neon-fp-armv8 \
-    -mfloat-abi=hard
+    -O3 \
+    -flto -ffat-lto-objects \
+    -mfix-cortex-a53-835769
+
+TARGET_LDFLAGS += -flto
 
 # A311D 硬件专属驱动（确保双核心协同工作）
 DEFAULT_PACKAGES += \
