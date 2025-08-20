@@ -10,7 +10,7 @@ CPU_TYPE:=cortex-a73.cortex-a53
 KERNEL_PATCHVER:=5.15
 
 TARGET_CFLAGS += \
-    -march=armv8.0-a+crypto+simd+crc \
+    -march=armv8.0-a+crypto+neon+crc \
     -mcpu=cortex-a73 \
     -mtune=cortex-a73.cortex-a53 \
     -O3 \
