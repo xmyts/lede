@@ -10,10 +10,10 @@ CPU_TYPE:=cortex-a73.cortex-a53
 KERNEL_PATCHVER:=5.15
 
 TARGET_CFLAGS += \
-    -mcpu=cortex-a73.cortex-a53 \  # 关键修改：让编译器识别双集群并采用公共指令集和折中优化
+    -mcpu=cortex-a73.cortex-a53 \
     -O3 \
     -flto -ffat-lto-objects \
-    -mfix-cortex-a53-835769        # 重要：修复A53特定硬件缺陷
+    -mfix-cortex-a53-835769
 
 TARGET_LDFLAGS += -flto
 
