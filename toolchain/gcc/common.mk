@@ -176,11 +176,14 @@ ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
   
   # 添加优化的工具链构建标志
   _TOOLCHAIN_TARGET_CFLAGS += \
-    -march=armv8.0-a+crypto+neon+fp16 \
+    -march=armv8.0-a+crypto+simd+crc \
     -mcpu=cortex-a73 \
     -mtune=cortex-a73.cortex-a53 \
-    -mfpu=neon-fp-armv8 \
-    -mfloat-abi=hard
+    -O3 \
+    -flto -ffat-lto-objects \
+    --mfix-cortex-a53-835769
+
+  _TOOLCHAIN_TARGET_CFLAGS += -flto
 
 
   # 覆盖仅用于工具链构建的标志
