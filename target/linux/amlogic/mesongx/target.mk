@@ -11,11 +11,10 @@ KERNEL_PATCHVER:=5.15
 
 TARGET_CFLAGS += \
     -mcpu=cortex-a73.cortex-a53 \
-    -O3 \
-    -flto -ffat-lto-objects \
+    -O2 \
     -mfix-cortex-a53-835769
 
-TARGET_LDFLAGS += -flto
+#TARGET_LDFLAGS += -flto
 
 # A311D 硬件专属驱动（确保双核心协同工作）
 DEFAULT_PACKAGES += \
