@@ -176,12 +176,10 @@ ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
   
   # 添加优化的工具链构建标志
   _TOOLCHAIN_TARGET_CFLAGS += \
-    -march=armv8.0-a+crypto+neon+crc \
-    -mcpu=cortex-a73 \
-    -mtune=cortex-a73.cortex-a53 \
+    -mcpu=cortex-a73.cortex-a53 \  # 关键修改：让编译器识别双集群并采用公共指令集和折中优化
     -O3 \
     -flto -ffat-lto-objects \
-    --mfix-cortex-a53-835769
+    -mfix-cortex-a53-835769   
 
   _TOOLCHAIN_TARGET_CFLAGS += -flto
 
