@@ -5,16 +5,16 @@ src-git routing https://github.com/coolsnowwolf/routing
 src-git telephony https://github.com/coolsnowwolf/telephony.git
 #src-git helloworld https://github.com/fw876/helloworld.git
 #src-git oui https://github.com/zhaojh329/oui.git
-src-git video2 https://github.com/openwrt/video.git
-src-git targets2 https://github.com/openwrt/targets.git
+#src-git video2 https://github.com/openwrt/video.git
+#src-git targets2 https://github.com/openwrt/targets.git
 src-git oldpackages2 http://git.openwrt.org/packages.git
-src-link custom2 /usr/src/openwrt/custom-feed
+#src-link custom2 /usr/src/openwrt/custom-feed
 src-git packages1 https://mirrors.tuna.tsinghua.edu.cn/openwrt/packages.git
-src-git luci1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/luci.git
-src-git routing1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/routing.git
-src-git telephony1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/telephony.git
+#src-git luci1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/luci.git
+#src-git routing1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/routing.git
+#src-git telephony1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/telephony.git
 
 # 额外可选源（如有）
-src-git management1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/management.git
-src-git targets1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/targets.git
+#src-git management1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/management.git
+#src-git targets1 https://mirrors.tuna.tsinghua.edu.cn/git/openwrt/targets.git
 src-git oldpackages1 https://mirrors.tuna.tsinghua.edu.cn/openwrt/oldpackages.git
