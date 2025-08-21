@@ -4,17 +4,21 @@ SUBTARGET:=mesongx
 BOARDNAME:=Amlogic Meson GX/G12B (64-bit)
 FEATURES+=64bit
 
-# 设备CPU类型（仅用于标识，不直接绑定工具链参数）
+# 设备CPU类型（用于构建系统的标识和选择内核配置，不直接传递给工具链）
 CPU_TYPE:=cortex-a73.cortex-a53
 
 KERNEL_PATCHVER:=5.15
 
+# 核心优化参数：兼顾性能、兼容性与稳定性
 TARGET_CFLAGS += \
     -mcpu=cortex-a73.cortex-a53 \
-    -O2 \
-    -mfix-cortex-a53-835769
+    -O3 \
+    -flto \
+    -mfix-cortex-a53-835769 \
+    -mfix-cortex-a53-843419
 
-#TARGET_LDFLAGS += -flto
+# 链接器标志：必须也启用LTO以完成整个优化流程
+TARGET_LDFLAGS += -flto
 
 # A311D 硬件专属驱动（确保双核心协同工作）
 DEFAULT_PACKAGES += \
