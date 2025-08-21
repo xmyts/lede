@@ -176,9 +176,9 @@ ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
   
   # 添加优化的工具链构建标志
   _TOOLCHAIN_TARGET_CFLAGS += \
-    -mcpu=cortex-a73.cortex-a53
-
-
+    -mcpu=cortex-a73.cortex-a53 \
+    -mfix-cortex-a53-835769 \
+    -mfix-cortex-a53-843419
 
   # 覆盖仅用于工具链构建的标志
   TARGET_CFLAGS := $(_TOOLCHAIN_TARGET_CFLAGS)
