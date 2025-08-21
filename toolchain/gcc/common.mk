@@ -170,21 +170,31 @@ ifeq ($(CONFIG_arm),y)
 
 # +++ 新增：仅针对ARM64工具链构建的特殊处理 +++
 ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
-  # 仅移除工具链构建中的冲突标志，不影响目标固件标志
-  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -mcpu=%,$(TARGET_CFLAGS))
-  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -march=%,$(_TOOLCHAIN_TARGET_CFLAGS))
+  # 创建工具链专用的标志副本
+  _TOOLCHAIN_TARGET_CFLAGS := $(TARGET_CFLAGS)
   
-  # 添加优化的工具链构建标志
+  # 移除可能引起工具链构建冲突的标志
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -mcpu=%,$(_TOOLCHAIN_TARGET_CFLAGS))
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -march=%,$(_TOOLCHAIN_TARGET_CFLAGS))
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -flto%,$(_TOOLCHAIN_TARGET_CFLAGS)) # 也移除LTO相关标志
+  
+  # 添加为工具链构建优化的安全标志
   _TOOLCHAIN_TARGET_CFLAGS += \
     -mcpu=cortex-a73.cortex-a53 \
     -mfix-cortex-a53-835769 \
-    -mfix-cortex-a53-843419
+    -mfix-cortex-a53-843419 \
+    -O2
 
-  # 覆盖仅用于工具链构建的标志
+  # 同样处理LDFLAGS
+  _TOOLCHAIN_TARGET_LDFLAGS := $(filter-out -flto%,$(TARGET_LDFLAGS))
+  
+  # 临时覆盖全局标志（仅在此上下文中有效）
   TARGET_CFLAGS := $(_TOOLCHAIN_TARGET_CFLAGS)
+  TARGET_LDFLAGS := $(_TOOLCHAIN_TARGET_LDFLAGS)
+  
   undefine _TOOLCHAIN_TARGET_CFLAGS
+  undefine _TOOLCHAIN_TARGET_LDFLAGS
 endif
-
 
   # Do not let TARGET_CFLAGS get poisoned by extra CPU optimization flags
   # that do not belong here. The cpu,fpu type should be specified via
