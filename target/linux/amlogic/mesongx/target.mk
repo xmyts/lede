@@ -1,5 +1,6 @@
 # 文件：target/linux/amlogic/mesongx/target.mk
-# 来源：deepseek oes盒子芯片a311d，CPU：采用 Big.Little 架
+# 文件：target/linux/amlogic/mesongx/target.mk
+# 来源：deepseek oes盒子芯片a311d，CPU：采用 Big.Little 架构
 ARCH:=aarch64
 SUBTARGET:=mesongx
 BOARDNAME:=Amlogic Meson GX/G12B (64-bit)
@@ -11,14 +12,13 @@ KERNEL_PATCHVER:=5.15
 
 # 核心优化参数：极致性能调优，针对A311D硬件特性
 TARGET_CFLAGS += \
-    -march=armv8-a+crypto+simd+crc \   
-    -mtune=cortex-a73.cortex-a53 \   
-    -O3 \   
+    -march=armv8-a+crypto+simd+crc \
+    -mtune=cortex-a73.cortex-a53 \
+    -O3 \
     -flto=auto \
     -fno-semantic-interposition \
     -mfix-cortex-a53-835769 \
     -mfix-cortex-a53-843419
-
 
 # A311D 硬件专属驱动（确保所有硬件单元协同工作）
 DEFAULT_PACKAGES += \
