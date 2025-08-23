@@ -127,12 +127,6 @@ GCC_CONFIGURE:= \
 		--enable-__cxa_atexit \
 		--enable-libstdcxx-dual-abi \
 		--with-default-libstdcxx-abi=new
-
-# 针对aarch64架构：禁用--with-cpu和--with-fpu选项
-ifeq ($(ARCH),aarch64)
-  GCC_CONFIGURE := $(filter-out --with-cpu=% --with-fpu=%,$(GCC_CONFIGURE))
-endif
-
 ifneq ($(CONFIG_mips)$(CONFIG_mipsel),)
   GCC_CONFIGURE += --with-mips-plt
 endif
@@ -172,6 +166,35 @@ ifeq ($(CONFIG_arm),y)
 		--with-fpu=$(word 2, $(subst +, ",$(CONFIG_CPU_TYPE))) \
 		--with-float=hard
   endif
+
+
+# +++ 新增：仅针对ARM64工具链构建的特殊处理 +++
+ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
+  # 创建工具链专用的标志副本
+  _TOOLCHAIN_TARGET_CFLAGS := $(TARGET_CFLAGS)
+  
+  # 移除可能引起工具链构建冲突的标志
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -mcpu=%,$(_TOOLCHAIN_TARGET_CFLAGS))
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -march=%,$(_TOOLCHAIN_TARGET_CFLAGS))
+  _TOOLCHAIN_TARGET_CFLAGS := $(filter-out -flto%,$(_TOOLCHAIN_TARGET_CFLAGS)) # 也移除LTO相关标志
+  
+  # 添加为工具链构建优化的安全标志
+  _TOOLCHAIN_TARGET_CFLAGS += \
+    -mcpu=cortex-a73.cortex-a53 \
+    -mfix-cortex-a53-835769 \
+    -mfix-cortex-a53-843419 \
+    -O2
+
+  # 同样处理LDFLAGS
+  _TOOLCHAIN_TARGET_LDFLAGS := $(filter-out -flto%,$(TARGET_LDFLAGS))
+  
+  # 临时覆盖全局标志（仅在此上下文中有效）
+  TARGET_CFLAGS := $(_TOOLCHAIN_TARGET_CFLAGS)
+  TARGET_LDFLAGS := $(_TOOLCHAIN_TARGET_LDFLAGS)
+  
+  undefine _TOOLCHAIN_TARGET_CFLAGS
+  undefine _TOOLCHAIN_TARGET_LDFLAGS
+endif
 
   # Do not let TARGET_CFLAGS get poisoned by extra CPU optimization flags
   # that do not belong here. The cpu,fpu type should be specified via
