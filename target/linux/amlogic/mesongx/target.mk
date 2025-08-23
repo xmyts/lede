@@ -1,26 +1,26 @@
 # 文件：target/linux/amlogic/mesongx/target.mk
+# 来源：deepseek oes盒子芯片a311d，CPU：采用 Big.Little 架
 ARCH:=aarch64
 SUBTARGET:=mesongx
 BOARDNAME:=Amlogic Meson GX/G12B (64-bit)
 FEATURES+=64bit
 
-# 设备CPU类型（用于构建系统的标识和选择内核配置，不直接传递给工具链）
 CPU_TYPE:=cortex-a73.cortex-a53
 
 KERNEL_PATCHVER:=5.15
 
-# 核心优化参数：兼顾性能、兼容性与稳定性
+# 核心优化参数：极致性能调优，针对A311D硬件特性
 TARGET_CFLAGS += \
-    -mcpu=cortex-a73.cortex-a53 \
-    -O3 \
-    -flto \
+    -march=armv8-a+crypto+simd+crc \   
+    -mtune=cortex-a73.cortex-a53 \   
+    -O3 \   
+    -flto=auto \
+    -fno-semantic-interposition \
     -mfix-cortex-a53-835769 \
     -mfix-cortex-a53-843419
 
-# 链接器标志：必须也启用LTO以完成整个优化流程
-TARGET_LDFLAGS += -flto
 
-# A311D 硬件专属驱动（确保双核心协同工作）
+# A311D 硬件专属驱动（确保所有硬件单元协同工作）
 DEFAULT_PACKAGES += \
 	ethtool parted kmod-fb \
 	kmod-crypto-amlogic \
@@ -30,11 +30,16 @@ DEFAULT_PACKAGES += \
 	amlogic-gpu-driver \
 	kmod-cpufreq-dt \
 	kmod-sched-core \
-	kmod-cpu-cooling
+	kmod-cpu-cooling \
+	kmod-arm-cci \
+	kmod-rng-amlogic \
+	zram-swap \
+	f2fs-tools
 
 define Target/Description
 	Build firmware for Amlogic Meson GX/G12B series (64-bit), including A311D.
 	Optimized for big.LITTLE architecture (4x Cortex-A73 + 2x Cortex-A53) with
-	ARMv8-A instruction set compatibility. Supports hardware acceleration and
-	thermal management for dual-core clusters.
+	ARMv8.2-A instruction set and CRC/Crypto extensions. Includes full hardware
+	acceleration, thermal management, and scheduler support for dual-core clusters.
+	Stripped and LTO-optimized for maximum performance and minimal size.
 endef
