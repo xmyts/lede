@@ -12,13 +12,9 @@ KERNEL_PATCHVER:=5.15
 
 # 核心优化参数：极致性能调优，针对A311D硬件特性
 TARGET_CFLAGS += \
-    -march=armv8-a+crypto+simd+crc \
-    -mtune=cortex-a73.cortex-a53 \
+    -mcpu=cortex-a73 \
     -O2 \
-    -flto=auto \
-    -fno-semantic-interposition \
-    -mfix-cortex-a53-835769 \
-    -mfix-cortex-a53-843419
+    -flto=auto 
 
 # A311D 硬件专属驱动（确保所有硬件单元协同工作）
 DEFAULT_PACKAGES += \
