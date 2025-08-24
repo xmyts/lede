@@ -180,9 +180,7 @@ ifneq (,$(findstring aarch64,$(REAL_GNU_TARGET_NAME)))
   
   # 添加为工具链构建优化的安全标志
   _TOOLCHAIN_TARGET_CFLAGS += \
-    -mcpu=cortex-a73.cortex-a53 \
-    -mfix-cortex-a53-835769 \
-    -mfix-cortex-a53-843419 \
+    -mcpu=cortex-a73
     -O2
 
   # 同样处理LDFLAGS
