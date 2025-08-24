@@ -14,7 +14,7 @@ KERNEL_PATCHVER:=5.15
 TARGET_CFLAGS += \
     -march=armv8-a+crypto+simd+crc \
     -mtune=cortex-a73.cortex-a53 \
-    -O3 \
+    -O2 \
     -flto=auto \
     -fno-semantic-interposition \
     -mfix-cortex-a53-835769 \
