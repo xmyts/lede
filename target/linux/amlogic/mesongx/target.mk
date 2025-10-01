@@ -17,10 +17,9 @@ TARGET_CFLAGS += \
     -ftree-vectorize \
     -funsafe-math-optimizations \
     -ffp-contract=fast \
-    -flto=auto \
     -fschedule-insns2
 
-TARGET_LDFLAGS += -flto=auto -Wl,--hash-style=gnu
+# TARGET_LDFLAGS += -flto=auto -Wl,--hash-style=gnu
 
 
 
