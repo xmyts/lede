@@ -15,9 +15,9 @@ TARGET_CFLAGS += \
     -mtune=cortex-a73 \
     -O2 \
     -ftree-vectorize \
-    -funsafe-math-optimizations \
-    -ffp-contract=fast \
-    -fschedule-insns2
+    -funroll-loops \
+    -fprefetch-loop-arrays
+
 
 # TARGET_LDFLAGS += -flto=auto -Wl,--hash-style=gnu
 
