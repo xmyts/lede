@@ -11,8 +11,7 @@ KERNEL_PATCHVER:=5.15
 
 # 核心优化参数：极致性能调优，针对A311D硬件特性
 TARGET_CFLAGS += \
-    -march=armv8-a+crypto+crc+simd \
-    -mtune=cortex-a73 \
+    -mcpu=cortex-a73 \
     -O2 \
     -ftree-vectorize \
     -funroll-loops \
