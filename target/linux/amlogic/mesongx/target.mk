@@ -12,7 +12,7 @@ KERNEL_PATCHVER:=5.15
 # 核心优化参数：极致性能调优，针对A311D硬件特性
 TARGET_CFLAGS += \
     -mcpu=cortex-a73 \
-    -O3 \
+    -O2 \
     -ftree-vectorize \
     -funroll-loops \
     -fprefetch-loop-arrays
