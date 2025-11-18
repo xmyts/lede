@@ -18,7 +18,7 @@ TARGET_CFLAGS += \
     -fprefetch-loop-arrays
 
 
-# TARGET_LDFLAGS += -flto=auto -Wl,--hash-style=gnu
+TARGET_LDFLAGS += -flto=1 -Wl,--hash-style=gnu
 
 
 
